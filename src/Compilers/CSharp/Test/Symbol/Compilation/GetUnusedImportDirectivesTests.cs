@@ -488,5 +488,63 @@ namespace X
                 compilation.VerifyDiagnostics();
             }
         }
+
+        [Fact]
+        public void SameNameExtensionMethod()
+        {
+            var source = @"
+using System.Linq;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        1.Count();
+    }
+}
+
+static class E
+{
+    public static int Count(this int n) => n;
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): info CS8019: Unnecessary using directive.
+                // using System.Linq;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
+        }
+
+        [Fact]
+        public void SameNameExtensionMethodInNamespace()
+        {
+            var source = @"
+using System.Linq;
+using D;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        1.Count();
+    }
+}
+
+namespace D
+{
+    static class E
+    {
+        public static int Count(this int n) => n;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (2,1): info CS8019: Unnecessary using directive.
+                // using System.Linq;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
+        }
     }
 }
